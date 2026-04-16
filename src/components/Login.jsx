@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { authAPI } from '../services/endpoints'
 import toast from 'react-hot-toast'
@@ -95,7 +95,7 @@ const Login = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              Demo credentials: admin / admin123
+             Student Login ? <p className='text-primary-600'><Link to="/student/login">Click here</Link></p>
             </p>
           </div>
         </div>

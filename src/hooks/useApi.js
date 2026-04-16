@@ -69,6 +69,19 @@ export const useCreateTask = () => {
         mutationFn: taskAPI.create,
         onSuccess: () => {
             queryClient.invalidateQueries(['tasks'])
+            toast.success('Task created successfully')
+        }
+    })
+}
+
+export const useBulkCreateTask = () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: taskAPI.bulkCreate,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['tasks'])
+            toast.success('Tasks assigned successfully')
         }
     })
 }
@@ -103,5 +116,37 @@ export const useUpdateTask = () => {
         onSuccess: () => {
             queryClient.invalidateQueries(['tasks'])
         }
+    })
+}
+
+export const useSubmitWork = () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({ id, formData }) => taskAPI.studentSubmitWork(id, formData),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['tasks'])
+            queryClient.invalidateQueries(['myTasks'])
+            toast.success('Work submitted successfully')
+        }
+    })
+}
+
+export const useVerifySubmission = () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({ id, data }) => taskAPI.adminVerifySubmission(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['tasks'])
+            toast.success('Submission verified')
+        }
+    })
+}
+
+export const useRanking = () => {
+    return useQuery({
+        queryKey: ['ranking'],
+        queryFn: taskAPI.getRanking
     })
 }

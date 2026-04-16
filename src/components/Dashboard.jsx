@@ -1,17 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Navbar from './Navbar'
 import StudentList from './StudentList'
 import TaskList from './TaskList'
 import StatCard from './StatCard'
+import RankList from './RankList'
 import { useStudents, useTasks } from '../hooks/useApi'
-import { Users, ClipboardList, CheckCircle, Clock } from 'lucide-react'
+import { Users, Clipboard, CheckCircle2, Clock, UserCheck, Trophy, FileText } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { studentAPI } from '../services/endpoints'
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('students')
   const { data: students = [], isLoading: studentsLoading } = useStudents()
   const { data: tasks = [], isLoading: tasksLoading } = useTasks()
 
-  const uniqueTasks = React.useMemo(() => {
+  const { data: pendingStudents = [] } = useQuery({
+    queryKey: ['pendingStudents'],
+    queryFn: studentAPI.getPending,
+    staleTime: 30000
+  })
+
+  const uniqueTasks = useMemo(() => {
     const groups = {}
     tasks.forEach(task => {
       const key = `${task.title}_${task.description}_${task.dueDate}`
@@ -29,7 +38,8 @@ const Dashboard = () => {
     return Object.values(groups)
   }, [tasks])
 
-  const pendingTasks = uniqueTasks.filter(task => task.status === 'pending')
+  const submittedTasks = uniqueTasks.filter(task => task.status === 'submitted')
+  const pendingTasks = uniqueTasks.filter(task => task.status === 'pending' || task.status === 'rejected')
   const completedTasks = uniqueTasks.filter(task => task.status === 'completed')
 
   const stats = [
@@ -40,9 +50,15 @@ const Dashboard = () => {
       color: 'bg-blue-500'
     },
     {
+      title: 'Pending Students',
+      value: pendingStudents.length,
+      icon: UserCheck,
+      color: 'bg-pink-500'
+    },
+    {
       title: 'Total Tasks',
       value: uniqueTasks.length,
-      icon: ClipboardList,
+      icon: Clipboard,
       color: 'bg-purple-500'
     },
     {
@@ -52,9 +68,15 @@ const Dashboard = () => {
       color: 'bg-yellow-500'
     },
     {
-      title: 'Completed Tasks',
+      title: 'Submitted',
+      value: submittedTasks.length,
+      icon: FileText,
+      color: 'bg-indigo-500'
+    },
+    {
+      title: 'Completed',
       value: completedTasks.length,
-      icon: CheckCircle,
+      icon: CheckCircle2,
       color: 'bg-green-500'
     }
   ]
@@ -69,7 +91,7 @@ const Dashboard = () => {
           <p className="text-gray-600 mt-1">Manage students and track assignments</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
@@ -98,14 +120,26 @@ const Dashboard = () => {
               >
                 Tasks
               </button>
+              <button
+                onClick={() => setActiveTab('rankings')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'rankings'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Rankings
+              </button>
             </nav>
           </div>
 
           <div className="p-6">
             {activeTab === 'students' ? (
               <StudentList students={students} isLoading={studentsLoading} />
-            ) : (
+            ) : activeTab === 'tasks' ? (
               <TaskList tasks={tasks} isLoading={tasksLoading} />
+            ) : (
+              <RankList />
             )}
           </div>
         </div>

@@ -215,13 +215,26 @@ const TaskList = ({ tasks, isLoading }) => {
                   <input
                     type="radio"
                     name="statusFilter"
-                    value="completed"
-                    checked={filterStatus === 'completed'}
+                    value="submitted"
+                    checked={filterStatus === 'submitted'}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700"> Completed</span>
-                  <span className="text-xs text-gray-500">({completedCount})</span>
+                  <span className="text-sm text-gray-700"> Submitted</span>
+                  <span className="text-xs text-gray-500">({filteredGroups.filter(g => g.status === 'submitted').length})</span>
+                </label>
+
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="statusFilter"
+                    value="rejected"
+                    checked={filterStatus === 'rejected'}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                  />
+                  <span className="text-sm text-gray-700"> Rejected</span>
+                  <span className="text-xs text-gray-500">({filteredGroups.filter(g => g.status === 'rejected').length})</span>
                 </label>
               </div>
             </div>
@@ -345,11 +358,12 @@ const TaskList = ({ tasks, isLoading }) => {
                             <span>Due: {format(new Date(group.dueDate), 'MMM dd, yyyy')}</span>
                           </div>
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            group.status === 'completed'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-700'
+                            group.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            group.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                            group.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {group.status === 'completed' ? 'Completed' : 'Pending'}
+                            {group.status.charAt(0).toUpperCase() + group.status.slice(1)}
                           </span>
                         </div>
                         
@@ -365,13 +379,22 @@ const TaskList = ({ tasks, isLoading }) => {
                                   <span className="text-gray-400">•</span>
                                   <span className="text-gray-500">Roll: {task.studentId?.rollNumber}</span>
                                 </div>
-                                <button
-                                  onClick={() => handleDeleteSingleTask(task)}
-                                  className="text-gray-400 hover:text-red-600 transition-colors"
-                                  title={`Remove from ${task.studentId?.name}`}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => handleView(task)}
+                                    className="text-blue-500 hover:text-blue-700 p-1"
+                                    title="Verify Submission"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSingleTask(task)}
+                                    className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                                    title={`Remove from ${task.studentId?.name}`}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -380,13 +403,23 @@ const TaskList = ({ tasks, isLoading }) => {
                     </div>
                     
                     <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => handleView(group)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      {studentCount === 1 ? (
+                        <button
+                          onClick={() => handleView(group.tasks[0])}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => toggleGroupExpansion(groupKey)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                          title="View Students"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleEdit(group)}
                         className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"

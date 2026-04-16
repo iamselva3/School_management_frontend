@@ -27,7 +27,13 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('token')
-            window.location.href = '/login'
+            const role = localStorage.getItem('role')
+            localStorage.removeItem('role')
+            if (role === 'student') {
+                window.location.href = '/student/login'
+            } else {
+                window.location.href = '/login'
+            }
         }
         return Promise.reject(error)
     }
