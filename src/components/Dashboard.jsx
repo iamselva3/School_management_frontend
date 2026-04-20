@@ -147,48 +147,28 @@ const Dashboard = () => {
           transition={{ delay: 0.4 }}
           className="card p-0 overflow-hidden glass-card"
         >
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
-              <button
-                onClick={() => setActiveTab('students')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'students'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Students
-              </button>
-              <button
-                onClick={() => setActiveTab('tasks')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'tasks'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Tasks
-              </button>
-              <button
-                onClick={() => setActiveTab('rankings')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'rankings'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Rankings
-              </button>
-              <button
-                onClick={() => setActiveTab('attendance')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'attendance'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Attendance
-              </button>
+          <div className="px-10 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-950/20">
+            <nav className="flex flex-wrap gap-4">
+              {[
+                { id: 'students', label: 'Personnel Registry' },
+                { id: 'tasks', label: 'Operational Directives' },
+                { id: 'rankings', label: 'Elite Leaderboard' },
+                { id: 'attendance', label: 'Temporal Attendance' }
+              ].map((tab) => (
+                <motion.button
+                  key={tab.id}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 dark:shadow-none'
+                      : 'text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                </motion.button>
+              ))}
             </nav>
           </div>
 

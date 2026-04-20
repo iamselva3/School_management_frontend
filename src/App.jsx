@@ -52,6 +52,8 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <ThemeProvider>
+      <div className="scanline" />
+      <div className="bg-terminal-grid fixed inset-0 z-[-1]" />
       <Router>
         <AnimatedRoutes />
       </Router>

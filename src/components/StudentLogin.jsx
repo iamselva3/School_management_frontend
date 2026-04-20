@@ -68,7 +68,7 @@ const StudentLogin = () => {
         </div>
 
         <motion.div 
-          whileHover={{ y: -8, rotateY: 2, rotateX: -2 }}
+          whileHover={{ y: -5 }}
           className="bg-white/95 dark:bg-slate-900/95 rounded-[3.5rem] shadow-2xl p-12 border border-white/20 dark:border-slate-800/30 relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-rose-500 opacity-50" />
