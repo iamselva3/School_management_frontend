@@ -145,6 +145,17 @@ export const taskAPI = {
     }
 }
 
+export const attendanceAPI = {
+    get: async (className, date) => {
+        const response = await api.get(`/attendance/${className}/${date}`)
+        return response.data
+    },
+    save: async (className, date, records) => {
+        const response = await api.post(`/attendance/${className}/${date}`, { records })
+        return response.data
+    }
+}
+
 export const notificationAPI = {
     getMyNotifications: async () => {
         const response = await api.get('/students/me/notifications')

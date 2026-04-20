@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { studentAPI, taskAPI } from '../services/endpoints'
+import { studentAPI, taskAPI, attendanceAPI } from '../services/endpoints'
 import toast from 'react-hot-toast'
 
 export const useStudents = () => {
@@ -148,5 +148,28 @@ export const useRanking = () => {
     return useQuery({
         queryKey: ['ranking'],
         queryFn: taskAPI.getRanking
+    })
+}
+
+export const useAttendance = (className, date) => {
+    return useQuery({
+        queryKey: ['attendance', className, date],
+        queryFn: () => attendanceAPI.get(className, date),
+        enabled: !!className && !!date
+    })
+}
+
+export const useSaveAttendance = () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: ({ className, date, records }) => attendanceAPI.save(className, date, records),
+        onSuccess: (_, { className, date }) => {
+            queryClient.invalidateQueries(['attendance', className, date])
+            toast.success('Attendance saved successfully')
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || 'Failed to save attendance')
+        }
     })
 }

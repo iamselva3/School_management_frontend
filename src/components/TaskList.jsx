@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react'
 import TaskModal from './TaskModal'
 import TaskDetailModal from './TaskDetailModal'
 import { useMarkTaskComplete, useDeleteTask, useStudents } from '../hooks/useApi'
-import { Plus, CheckCircle, Circle, Trash2, Calendar, User, Filter, Pencil, Eye, Users as UsersIcon } from 'lucide-react'
+import { Plus, CheckCircle, Circle, Trash2, Calendar, User, Filter, Pencil, Eye, Users as UsersIcon, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const TaskList = ({ tasks, isLoading }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -115,8 +116,9 @@ const TaskList = ({ tasks, isLoading }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex flex-col items-center justify-center py-32 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
+        <Loader2 className="h-12 w-12 text-indigo-600 dark:text-indigo-400 animate-spin mb-6" />
+        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Filtering Curriculum Pathways...</p>
       </div>
     )
   }
@@ -125,322 +127,350 @@ const TaskList = ({ tasks, isLoading }) => {
   const completedCount = filteredGroups.filter(g => g.status === 'completed').length
 
   return (
-    <div>
-      <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-900">All Tasks</h2>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-8"
+    >
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/50 shadow-xl">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-4 uppercase tracking-tighter">
+              <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              Curriculum Tasks
+            </h2>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Active Academic Trajectories</p>
+          </div>
           
-          <div className="flex items-center gap-3">
-            <button
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowFilters(!showFilters)}
-              className="btn-secondary flex items-center space-x-2"
+              className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 flex-grow sm:flex-grow-0 ${
+                showFilters 
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-none' 
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800'
+              }`}
             >
               <Filter className="w-4 h-4" />
-              <span>Filters</span>
+              <span>Logic Filters</span>
               {(filterClass !== 'all' || filterStatus !== 'all') && (
-                <span className="bg-primary-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                  !
-                </span>
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse ml-1" />
               )}
-            </button>
+            </motion.button>
             
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsModalOpen(true)}
-              className="btn-primary flex items-center justify-center space-x-2 whitespace-nowrap"
+              className="btn-primary flex items-center justify-center space-x-3 flex-grow sm:flex-grow-0"
             >
-              <Plus className="w-4 h-4" />
-              <span>Assign Task</span>
-            </button>
+              <Plus className="w-5 h-5" />
+              <span>Deploy Task</span>
+            </motion.button>
           </div>
         </div>
 
-        {showFilters && (
-          <div className="card p-4 space-y-4 bg-gray-50">
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Filter by Class</h3>
-              <div className="flex flex-wrap gap-4">
-                {uniqueClasses.map((className) => (
-                  <label key={className} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="classFilter"
-                      value={className}
-                      checked={filterClass === className}
-                      onChange={(e) => setFilterClass(e.target.value)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      {className === 'all' ? ' All Classes' : className}
-                    </span>
-                    {className !== 'all' && (
-                      <span className="text-xs text-gray-500">
-                        ({students.filter(s => s.className === className).length})
-                      </span>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
+        <AnimatePresence mode="wait">
+          {showFilters && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0, y: -20 }}
+              animate={{ height: 'auto', opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -20 }}
+              className="overflow-hidden"
+            >
+              <div className="card p-8 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/20 shadow-2xl space-y-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                  <div>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                      Filter by Class
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {uniqueClasses.map((className) => (
+                        <button
+                          key={className}
+                          onClick={() => setFilterClass(className)}
+                          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 border ${
+                            filterClass === className
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-none'
+                              : 'bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:border-indigo-300'
+                          }`}
+                        >
+                          {className === 'all' ? 'All Units' : className}
+                          {className !== 'all' && (
+                            <span className="ml-3 opacity-50 px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-md text-[9px]">
+                               {students.filter(s => s.className === className).length}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Filter by Status</h3>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="statusFilter"
-                    value="all"
-                    checked={filterStatus === 'all'}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-gray-700"> All Tasks</span>
-                  <span className="text-xs text-gray-500">({filteredGroups.length})</span>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="statusFilter"
-                    value="pending"
-                    checked={filterStatus === 'pending'}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-4 h-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"
-                  />
-                  <span className="text-sm text-gray-700"> Pending</span>
-                  <span className="text-xs text-gray-500">({pendingCount})</span>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="statusFilter"
-                    value="submitted"
-                    checked={filterStatus === 'submitted'}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700"> Submitted</span>
-                  <span className="text-xs text-gray-500">({filteredGroups.filter(g => g.status === 'submitted').length})</span>
-                </label>
+                  <div>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                       Filter by State
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        { id: 'all', label: 'Universal', count: filteredGroups.length, color: 'indigo-500' },
+                        { id: 'pending', label: 'Pending', count: pendingCount, color: 'amber-500' },
+                        { id: 'submitted', label: 'Submitted', count: filteredGroups.filter(g => g.status === 'submitted').length, color: 'blue-500' },
+                        { id: 'rejected', label: 'Rejected', count: filteredGroups.filter(g => g.status === 'rejected').length, color: 'red-500' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setFilterStatus(item.id)}
+                          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 border flex items-center gap-3 ${
+                            filterStatus === item.id
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-none'
+                              : 'bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:border-indigo-300'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${filterStatus === item.id ? 'bg-white' : `bg-${item.color}`}`} />
+                          {item.label}
+                          <span className="opacity-50 text-[9px]">({item.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="statusFilter"
-                    value="rejected"
-                    checked={filterStatus === 'rejected'}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                  />
-                  <span className="text-sm text-gray-700"> Rejected</span>
-                  <span className="text-xs text-gray-500">({filteredGroups.filter(g => g.status === 'rejected').length})</span>
-                </label>
+                {(filterClass !== 'all' || filterStatus !== 'all') && (
+                  <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <button
+                      onClick={() => {
+                        setFilterClass('all')
+                        setFilterStatus('all')
+                      }}
+                      className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:opacity-70 uppercase tracking-widest"
+                    >
+                      Reset All Logic Gates
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-
-            {(filterClass !== 'all' || filterStatus !== 'all') && (
-              <div className="pt-2 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setFilterClass('all')
-                    setFilterStatus('all')
-                  }}
-                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {filteredGroups.length === 0 ? (
-        <div className="text-center py-12">
-          <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No tasks found</p>
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center py-32 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800"
+        >
+          <div className="bg-slate-100 dark:bg-slate-800 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+             <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600" />
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Zero Curriculum Data</h3>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">No results matched the specified logical restrictions.</p>
           {(filterClass !== 'all' || filterStatus !== 'all') ? (
             <button
               onClick={() => {
                 setFilterClass('all')
                 setFilterStatus('all')
               }}
-              className="btn-secondary mt-4"
+              className="btn-secondary mt-10 px-10"
             >
-              Clear Filters
+              Default View State
             </button>
           ) : (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="btn-primary mt-4"
+              className="btn-primary mt-10 px-10"
             >
-              Assign Your First Task
+              Generate New Curricula
             </button>
           )}
-        </div>
+        </motion.div>
       ) : (
-        <>
-          <div className="mb-3 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              Showing <span className="font-medium">{filteredGroups.length}</span> task group{filteredGroups.length !== 1 ? 's' : ''}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center px-4">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+               System Index: <span className="text-indigo-600 dark:text-indigo-400">{filteredGroups.length}</span> Active Segments
             </p>
           </div>
           
-          <div className="space-y-3">
+          <motion.div 
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.05 }
+              }
+            }}
+            className="space-y-6"
+          >
             {filteredGroups.map((group, index) => {
               const groupKey = `${group.title}_${index}`
               const isExpanded = expandedGroups[groupKey]
               const studentCount = group.tasks.length
               
               return (
-                <div
+                <motion.div
                   key={groupKey}
-                  className={`card p-4 hover:shadow-md transition-shadow ${
-                    group.status === 'completed' ? 'opacity-75 bg-gray-50' : ''
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{ x: 8 }}
+                  className={`card group hover:shadow-2xl transition-all border-slate-100 dark:border-slate-800/50 relative overflow-hidden ${
+                    group.status === 'completed' ? 'opacity-70 grayscale-[0.5]' : ''
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-3 flex-1">
-                      <button
+                  <div className="flex items-start justify-between relative z-10">
+                    <div className="flex items-start space-x-6 flex-1">
+                      <motion.button
+                        whileTap={{ scale: 0.8 }}
                         onClick={() => handleToggleComplete(group)}
-                        className={`mt-0.5 transition-colors ${
+                        className={`mt-1 transition-all duration-300 ${
                           group.status === 'completed'
-                            ? 'text-green-600 hover:text-green-700'
-                            : 'text-gray-400 hover:text-green-600'
+                            ? 'text-emerald-500'
+                            : 'text-slate-200 dark:text-slate-700 hover:text-emerald-500'
                         }`}
                       >
                         {group.status === 'completed' ? (
-                          <CheckCircle className="w-5 h-5" />
+                          <CheckCircle className="w-8 h-8" />
                         ) : (
-                          <Circle className="w-5 h-5" />
+                          <Circle className="w-8 h-8" />
                         )}
-                      </button>
+                      </motion.button>
                       
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className={`font-medium ${
-                            group.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-4 mb-3">
+                          <h3 className={`text-xl font-black tracking-tight uppercase truncate max-w-md ${
+                            group.status === 'completed' ? 'text-slate-400 line-through' : 'text-slate-900 dark:text-white'
                           }`}>
                             {group.title}
                           </h3>
                           {studentCount > 1 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                              <UsersIcon className="w-3 h-3" />
-                              {studentCount} students
+                            <span className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded-lg uppercase tracking-wider shadow-sm">
+                              <UsersIcon className="w-3.5 h-3.5" />
+                              {studentCount} Students
                             </span>
                           )}
                         </div>
                         {group.description && (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{group.description}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed font-medium line-clamp-2">{group.description}</p>
                         )}
-                        <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-gray-500">
+                        
+                        <div className="flex flex-wrap items-center gap-4">
                           {studentCount === 1 ? (
-                            <div className="flex items-center space-x-1">
-                              <User className="w-3 h-3" />
-                              <span>{group.tasks[0].studentId?.name || 'Unknown Student'}</span>
-                              <span className="text-gray-400">•</span>
-                              <span>{group.tasks[0].studentId?.className}</span>
-                              <span className="text-gray-400">•</span>
-                              <span>Roll: {group.tasks[0].studentId?.rollNumber}</span>
+                            <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
+                              <User className="w-3.5 h-3.5 text-indigo-500" />
+                              <span>{group.tasks[0].studentId?.name}</span>
+                              <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                              <span className="uppercase tracking-[0.2em]">{group.tasks[0].studentId?.className}</span>
                             </div>
                           ) : (
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
                               onClick={() => toggleGroupExpansion(groupKey)}
-                              className="flex items-center space-x-1 text-primary-600 hover:text-primary-700"
+                              className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:opacity-70 uppercase tracking-widest border-b-2 border-indigo-100 dark:border-indigo-900/30 pb-0.5"
                             >
-                              <UsersIcon className="w-3 h-3" />
-                              <span>{isExpanded ? 'Hide' : 'Show'} {studentCount} assigned students</span>
-                            </button>
+                              {isExpanded ? 'Collapse Cluster' : `Explode ${studentCount} Task Instances`}
+                            </motion.button>
                           )}
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>Due: {format(new Date(group.dueDate), 'MMM dd, yyyy')}</span>
+                          <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800">
+                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>EXPIRES {format(new Date(group.dueDate), 'MMM dd, yyyy').toUpperCase()}</span>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            group.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            group.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                            group.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
+                          <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${
+                            group.status === 'completed' ? 'bg-emerald-500 text-white shadow-emerald-200 dark:shadow-none' :
+                            group.status === 'submitted' ? 'bg-blue-500 text-white shadow-blue-200 dark:shadow-none' :
+                            group.status === 'rejected' ? 'bg-red-500 text-white shadow-red-200 dark:shadow-none' :
+                            'bg-amber-500 text-white shadow-amber-200 dark:shadow-none'
                           }`}>
-                            {group.status.charAt(0).toUpperCase() + group.status.slice(1)}
+                            {group.status}
                           </span>
                         </div>
                         
-                        {isExpanded && studentCount > 1 && (
-                          <div className="mt-3 pl-2 border-l-2 border-blue-200 space-y-2">
-                            {group.tasks.map(task => (
-                              <div key={task._id} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center space-x-2">
-                                  <User className="w-3 h-3 text-gray-400" />
-                                  <span className="text-gray-700">{task.studentId?.name}</span>
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-gray-500">{task.studentId?.className}</span>
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-gray-500">Roll: {task.studentId?.rollNumber}</span>
+                        <AnimatePresence>
+                          {isExpanded && studentCount > 1 && (
+                            <motion.div 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="mt-8 space-y-3 border-l-4 border-indigo-100 dark:border-indigo-900/30 pl-6 py-2 overflow-hidden"
+                            >
+                              {group.tasks.map(task => (
+                                <div key={task._id} className="flex items-center justify-between group/student p-4 bg-slate-50/50 dark:bg-slate-950/20 hover:bg-white dark:hover:bg-slate-900 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-800 shadow-inner">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter shadow-sm border border-slate-100 dark:border-slate-700">
+                                      {task.studentId?.className.slice(0, 2)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-black text-slate-900 dark:text-white leading-none uppercase tracking-tight">{task.studentId?.name}</p>
+                                      <p className="text-[10px] font-black text-slate-400 uppercase mt-2 tracking-widest">Roll: {task.studentId?.rollNumber}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3 opacity-0 group-hover/student:opacity-100 transition-opacity">
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      onClick={() => handleView(task)}
+                                      className="p-2.5 text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                      title="Verify Instance"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      onClick={() => handleDeleteSingleTask(task)}
+                                      className="p-2.5 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                      title="Purge Task"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </motion.button>
+                                  </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <button
-                                    onClick={() => handleView(task)}
-                                    className="text-blue-500 hover:text-blue-700 p-1"
-                                    title="Verify Submission"
-                                  >
-                                    <Eye className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteSingleTask(task)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors p-1"
-                                    title={`Remove from ${task.studentId?.name}`}
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-1">
-                      {studentCount === 1 ? (
-                        <button
-                          onClick={() => handleView(group.tasks[0])}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => toggleGroupExpansion(groupKey)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                          title="View Students"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
+                    <div className="flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-opacity ml-8">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        onClick={() => studentCount === 1 ? handleView(group.tasks[0]) : toggleGroupExpansion(groupKey)}
+                        className="p-3 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl transition-all shadow-sm border border-slate-100 dark:border-slate-700"
+                        title="Focus Overview"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
                         onClick={() => handleEdit(group)}
-                        className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
-                        title="Edit Task"
+                        className="p-3 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl transition-all shadow-sm border border-slate-100 dark:border-slate-700"
+                        title="Modify Cluster"
                       >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
+                        <Pencil className="w-5 h-5" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
                         onClick={() => handleDelete(group)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                        title="Delete Task"
+                        className="p-3 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600 rounded-2xl transition-all shadow-sm border border-slate-100 dark:border-slate-700"
+                        title="Purge Segment"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        <Trash2 className="w-5 h-5" />
+                      </motion.button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-          </div>
-        </>
+          </motion.div>
+        </div>
       )}
 
       <TaskModal
@@ -454,7 +484,7 @@ const TaskList = ({ tasks, isLoading }) => {
         onClose={handleCloseDetailModal}
         task={viewingTask}
       />
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,5 +1,6 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import PrivateRoute from './components/PrivateRoute'
@@ -8,28 +9,53 @@ import StudentRegister from './components/StudentRegister'
 import StudentDashboard from './components/StudentDashboard'
 import StudentPrivateRoute from './components/StudentPrivateRoute'
 import PendingApprovals from './components/PendingApprovals'
+import { ThemeProvider } from './context/ThemeContext'
 
-function App() {
+const PageWrapper = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, rotateY: 15, scale: 0.95, y: 20 }}
+    animate={{ opacity: 1, rotateY: 0, scale: 1, y: 0 }}
+    exit={{ opacity: 0, rotateY: -15, scale: 1.05, y: -20 }}
+    transition={{ duration: 0.4, ease: [0.43, 0.13, 0.23, 0.96] }}
+    style={{ transformOrigin: 'center center' }}
+  >
+    {children}
+  </motion.div>
+)
+
+const AnimatedRoutes = () => {
+  const location = useLocation()
+  
   return (
-    <Router>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         {/* Admin Routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
         <Route path="/" element={<PrivateRoute />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/admin/pending" element={<PendingApprovals />} />
+          <Route path="/" element={<PageWrapper><Dashboard /></PageWrapper>} />
+          <Route path="/admin/pending" element={<PageWrapper><PendingApprovals /></PageWrapper>} />
         </Route>
 
         {/* Student Routes */}
-        <Route path="/student/login" element={<StudentLogin />} />
-        <Route path="/student/register" element={<StudentRegister />} />
+        <Route path="/student/login" element={<PageWrapper><StudentLogin /></PageWrapper>} />
+        <Route path="/student/register" element={<PageWrapper><StudentRegister /></PageWrapper>} />
         <Route path="/student" element={<StudentPrivateRoute />}>
-          <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="dashboard" element={<PageWrapper><StudentDashboard /></PageWrapper>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/student/login" />} />
       </Routes>
-    </Router>
+    </AnimatePresence>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </ThemeProvider>
   )
 }
 
